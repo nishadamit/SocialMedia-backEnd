@@ -108,10 +108,77 @@ const updateCaption = async(req, res) =>{
        }
 }
 
+const commentOnPost = async(req, res) =>{
+        try {
+            const post = await postModel.findById(req.params.id);
+            if(!post){
+                return res.status(400).json({success: false, message: "Post not found"})
+            }
+            let commentIndex = -1;
+            post.comments.forEach((comment,index) =>{
+                if(comment.user.toString() === req.user._id.toString()){
+                    commentIndex = index;
+                }
+            })
+
+            if(commentIndex !== -1){
+               post.comments[commentIndex].comment = req.body.comment;
+            }else{
+               post.comments.push({user: req.user._id, comment: req.body.comment})
+            }
+
+            await post.save();
+            return res.status(200).json({success: true, message: "Comment Updated Successfully!"})
+
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: error.message
+            })
+        }
+}
+
+const deleteComment = async(req,res) =>{
+    try {
+        let comment = "";
+        const { commentId } = req.body;
+        const post = await userModel.findById(req.params.id);
+        if(!post){
+            return res.status(400).json({success: false, message: "Post not found"})
+        }
+
+        if(post.owner.toString() === req.user._id.toString()){
+            if(commentId === undefined){
+                return res.status(400).json({success: false, message: "Comment Id is required."})
+            }
+
+            post.comments.forEach((item, index) =>{
+                if(item._id.toString() === commentId.toString()){
+                    return post.comments.splice(index, 1)
+                }
+            })
+            comment = "Selected Comment has deleted!"
+        }else{
+            post.comments.forEach((item, index) =>{
+                if(item.owner.toString() === req.user._id.toString()){
+                    return post.comments.splice(index, 1)
+                }
+            })
+        }
+
+        await post.save();
+        res.status(200).json({success: true, message: "Commment Deleted Successfully!"})
+    } catch (error) {
+        res.status(500).json({success: false, message: error.message})
+    }
+}
+
 module.exports = {
     createPost,
     likeOrUnlike,
     deletePost,
     getPostOfFollowing,
-    updateCaption
+    updateCaption,
+    commentOnPost,
+    deleteComment
 }
