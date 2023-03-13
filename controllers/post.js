@@ -142,13 +142,17 @@ const deleteComment = async(req,res) =>{
     try {
         let comment = "";
         const { commentId } = req.body;
-        const post = await userModel.findById(req.params.id);
+        const post = await postModel.findById(req.params.id);
         if(!post){
             return res.status(400).json({success: false, message: "Post not found"})
         }
 
+        // if user wants to delete his own coment
+        console.log(req.user._id.toString())
+
         if(post.owner.toString() === req.user._id.toString()){
-            if(commentId === undefined){
+             console.log("inside if")
+            if(!commentId){
                 return res.status(400).json({success: false, message: "Comment Id is required."})
             }
 
@@ -159,15 +163,17 @@ const deleteComment = async(req,res) =>{
             })
             comment = "Selected Comment has deleted!"
         }else{
+            console.log("inside else")
             post.comments.forEach((item, index) =>{
-                if(item.owner.toString() === req.user._id.toString()){
+                if(item.user.toString() === req.user._id.toString()){
                     return post.comments.splice(index, 1)
                 }
             })
+            comment = "Comment deleted Successfully"
         }
 
         await post.save();
-        res.status(200).json({success: true, message: "Commment Deleted Successfully!"})
+        res.status(200).json({success: true, message: comment})
     } catch (error) {
         res.status(500).json({success: false, message: error.message})
     }

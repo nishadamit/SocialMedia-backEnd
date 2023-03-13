@@ -6,7 +6,8 @@ const {
     deletePost,
     getPostOfFollowing,
     updateCaption,
-    commentOnPost
+    commentOnPost,
+    deleteComment
  } = require("../controllers/post");
 const { isAuthenticate } = require("../middlewares/auth");
 
@@ -18,6 +19,6 @@ router.delete('/delete/:id', isAuthenticate, deletePost);
 router.get('/postOfFollowing', isAuthenticate, getPostOfFollowing);
 router.put('/updatecaption/:id',isAuthenticate, updateCaption);
 router.put('/commentOnPost/:id', isAuthenticate, commentOnPost);
-
+router.delete('/deletecomment/:id',isAuthenticate,deleteComment)
 
 module.exports = router;
